@@ -1,0 +1,64 @@
+     1  0000:                   ORG     0000H
+     2  0000: 02 01 00          LJMP    MAIN
+     3                  
+     4  0100:                   ORG     0100H
+     5                  
+     6        0030      NUM1    EQU     30H
+     7        0031      NUM2    EQU     31H
+     8        0032      BIN1    EQU     32H
+     9        0033      BIN2    EQU     33H
+    10        0034      RESULT  EQU     34H
+    11                  
+    12  0100:           MAIN:
+    13  0100: 12 81 0C          LCALL   LCD_CLR
+    14                  
+    15                          ; Example BCD inputs: 25 and 12
+    16  0103: 75 30 25          MOV     NUM1, #25H
+    17  0106: 75 31 12          MOV     NUM2, #12H
+    18                  
+    19                  ; --- Convert NUM1 from BCD to binary ---
+    20  0109: E5 30             MOV     A, NUM1
+    21  010B: 54 F0             ANL     A, #0F0H      ; isolate tens
+    22  010D: C4                SWAP    A
+    23  010E: F8                MOV     R0, A         ; tens
+    24  010F: 74 0A             MOV     A, #10
+    25  0111: A4                MUL     AB            ; R0*10
+    26  0112: F9                MOV     R1, A         ; store tens*10
+    27  0113: E5 30             MOV     A, NUM1
+    28  0115: 54 0F             ANL     A, #0FH       ; ones
+    29  0117: 29                ADD     A, R1
+    30  0118: F5 32             MOV     BIN1, A
+    31                  
+    32                  ; --- Convert NUM2 from BCD to binary ---
+    33  011A: E5 31             MOV     A, NUM2
+    34  011C: 54 F0             ANL     A, #0F0H
+    35  011E: C4                SWAP    A
+    36  011F: F8                MOV     R0, A
+    37  0120: 74 0A             MOV     A, #10
+    38  0122: A4                MUL     AB
+    39  0123: F9                MOV     R1, A
+    40  0124: E5 31             MOV     A, NUM2
+    41  0126: 54 0F             ANL     A, #0FH
+    42  0128: 29                ADD     A, R1
+    43  0129: F5 33             MOV     BIN2, A
+    44                  
+    45                  ; --- Multiply binary values ---
+    46  012B: E5 32             MOV     A, BIN1
+    47  012D: 85 33 F0          MOV     B, BIN2
+    48  0130: A4                MUL     AB            ; result in A(low), B(high)
+    49                  
+    50                  ; --- Convert result back to BCD ---
+    51                          ; Here assume result < 100 for simplicity
+    52  0131: 75 F0 0A          MOV     B, #10
+    53  0134: 84                DIV     AB            ; A = tens, B = ones
+    54  0135: C4                SWAP    A
+    55  0136: 54 F0             ANL     A, #0F0H
+    56  0138: 45 F0             ORL     A, B
+    57  013A: F5 34             MOV     RESULT, A
+    58                  
+    59                  ; --- Display result ---
+    60  013C: E5 34             MOV     A, RESULT
+    61  013E: 12 81 04          LCALL   WRITE_HEX
+    62                  
+    63  0141: 80 FE     HERE:   SJMP    HERE
+    64                     

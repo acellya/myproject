@@ -1,0 +1,40 @@
+     1  0000:                   ORG     0000H
+     2  0000: 02 01 00          LJMP    MAIN
+     3                  
+     4  0100:                   ORG     0100H
+     5                  
+     6        0030      LOWBYTE     EQU     30H        ; A (LSB) yedekleme için
+     7                  
+     8  0100:           MAIN:
+     9  0100: 12 81 0C          LCALL   LCD_CLR
+    10                  
+    11                          ; Örnek: sayıları yükle
+    12  0103: 74 0C             MOV     A, #12         ; ilk sayı
+    13  0105: 75 F0 05          MOV     B, #5          ; ikinci sayı
+    14                  
+    15                          ; Çarpma
+    16  0108: A4                MUL     AB             ; A=LSB, B=MSB
+    17                  
+    18                          ; Sonucu göster
+    19                          ; B==0 ise tek byte sonuç
+    20  0109: F5 30             MOV     LOWBYTE, A     ; A (LSB) sakla, çünkü altprogram A'yı bozabilir
+    21  010B: E5 F0             MOV     A, B
+    22  010D: 60 0A             JZ      ONE_BYTE_RESULT
+    23                  
+    24  010F:           TWO_BYTE_RESULT:
+    25                          ; İki byte’lık sonuç: önce yüksek (B), sonra düşük (A)
+    26                          ; A şu an B idi (yukarıda MOV A,B yaptık)
+    27  010F: 12 81 04          LCALL   WRITE_HEX      ; yüksek byte yaz
+    28  0112: E5 30             MOV     A, LOWBYTE     ; düşük byte geri yükle
+    29  0114: 12 81 04          LCALL   WRITE_HEX
+    30  0117: 80 05             SJMP    END_PROGRAM
+    31                  
+    32  0119:           ONE_BYTE_RESULT:
+    33                          ; Tek byte: sadece düşük byte'ı yaz
+    34  0119: E5 30             MOV     A, LOWBYTE
+    35  011B: 12 81 04          LCALL   WRITE_HEX
+    36                  
+    37  011E:           END_PROGRAM:
+    38  011E: 80 FE     HERE:   SJMP    HERE
+    39                  
+    40                          END

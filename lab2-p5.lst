@@ -1,0 +1,52 @@
+     1  0000:                   ORG     0000H
+     2  0000: 02 01 00          LJMP    MAIN
+     3                  
+     4  0100:                   ORG     0100H
+     5                  
+     6        0030      TOTAL   EQU     30H
+     7        0031      TEMP    EQU     31H
+     8        0032      BCDNUM  EQU     32H
+     9                  
+    10  0100:           MAIN:
+    11  0100: 12 81 0C          LCALL   LCD_CLR
+    12  0103: 75 30 00          MOV     TOTAL, #00H
+    13                  
+    14  0106:           NEXT_INPUT:
+    15                          ; --- Read key ---
+    16  0106: 12 81 1C          LCALL   WAIT_KEY        ; A = ASCII digit
+    17  0109: 12 81 02          LCALL   WRITE_DATA      ; show digit
+    18                  
+    19                          ; ASCII -> number
+    20  010C: C3                CLR     C
+    21  010D: 94 30             SUBB    A, #'0'
+    22  010F: F5 31             MOV     TEMP, A
+    23                  
+    24                          ; --- Add to TOTAL ---
+    25  0111: E5 30             MOV     A, TOTAL
+    26  0113: 25 31             ADD     A, TEMP
+    27  0115: F5 30             MOV     TOTAL, A
+    28                  
+    29                          ; --- Show '=' ---
+    30  0117: 74 3D             MOV     A, #'='
+    31  0119: 12 81 02          LCALL   WRITE_DATA
+    32                  
+    33                          ; --- Convert TOTAL to BCD ---
+    34  011C: E5 30             MOV     A, TOTAL
+    35  011E: 75 F0 0A          MOV     B, #10
+    36  0121: 84                DIV     AB              ; A = tens, B = ones
+    37  0122: C4                SWAP    A
+    38  0123: 54 F0             ANL     A, #0F0H
+    39  0125: 45 F0             ORL     A, B
+    40  0127: F5 32             MOV     BCDNUM, A
+    41                  
+    42                          ; --- Display result ---
+    43  0129: E5 32             MOV     A, BCDNUM
+    44  012B: 12 81 04          LCALL   WRITE_HEX
+    45                  
+    46                          ; --- Show '+' for next input ---
+    47  012E: 74 2B             MOV     A, #'+'
+    48  0130: 12 81 02          LCALL   WRITE_DATA
+    49                  
+    50  0133: 80 D1             SJMP    NEXT_INPUT
+    51                  
+    52                       

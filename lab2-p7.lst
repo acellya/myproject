@@ -1,0 +1,90 @@
+     1  0000:                   ORG 0000H
+     2  0000: 02 01 00          LJMP MAIN
+     3                  
+     4  0100:                   ORG 0100H
+     5                  
+     6  0100:           MAIN:
+     7  0100: 12 81 0C          LCALL LCD_CLR
+     8                  
+     9                          ; Example: load a number into A
+    10  0103: 74 9C             MOV A, #156          ; test value
+    11                  
+    12                          ; Save on stack
+    13  0105: C0 E0             PUSH ACC
+    14                  
+    15                          ; Convert and display decimal
+    16  0107: 12 01 11          LCALL CONV_BCD
+    17                  
+    18                          ; Restore original value
+    19  010A: D0 E0             POP ACC
+    20                  
+    21                          ; Display in hex
+    22  010C: 12 01 36          LCALL DISP_HEX
+    23                  
+    24  010F: 80 FE     HERE:   SJMP HERE
+    25                  
+    26                  
+    27                  ; -------------------------------
+    28                  ; Subroutine: CONV_BCD
+    29                  ; Converts number in A to decimal
+    30                  ; and displays it
+    31                  ; -------------------------------
+    32  0111:           CONV_BCD:
+    33  0111: 75 F0 64          MOV B, #100
+    34  0114: 84                DIV AB               ; A=hundreds, B=remainder
+    35  0115: F8                MOV R0, A            ; hundreds
+    36  0116: E5 F0             MOV A, B             ; remainder
+    37  0118: 75 F0 0A          MOV B, #10
+    38  011B: 84                DIV AB               ; A=tens, B=ones
+    39  011C: F9                MOV R1, A
+    40  011D: AA F0             MOV R2, B
+    41                  
+    42                          ; Display hundreds if nonzero
+    43  011F: E8                MOV A, R0
+    44  0120: 60 05             JZ SKIP_HUND
+    45  0122: 24 30             ADD A, #'0'
+    46  0124: 12 81 02          LCALL WRITE_DATA
+    47  0127:           SKIP_HUND:
+    48                  
+    49                          ; Display tens if nonzero or hundreds shown
+    50  0127: E9                MOV A, R1
+    51  0128: 60 05             JZ SKIP_TENS
+    52  012A: 24 30             ADD A, #'0'
+    53  012C: 12 81 02          LCALL WRITE_DATA
+    54  012F:           SKIP_TENS:
+    55                  
+    56                          ; Display ones
+    57  012F: EA                MOV A, R2
+    58  0130: 24 30             ADD A, #'0'
+    59  0132: 12 81 02          LCALL WRITE_DATA
+    60                  
+    61  0135: 22                RET
+    62                  
+    63                  
+    64                  ; -------------------------------
+    65                  ; Subroutine: DISP_HEX
+    66                  ; Displays number in A as 2-digit hex
+    67                  ; -------------------------------
+    68  0136:           DISP_HEX:
+    69  0136: FB                MOV R3, A
+    70  0137: 54 F0             ANL A, #0F0H
+    71  0139: C4                SWAP A
+    72  013A: 31 42             ACALL HEX_DIGIT
+    73  013C: EB                MOV A, R3
+    74  013D: 54 0F             ANL A, #0FH
+    75  013F: 31 42             ACALL HEX_DIGIT
+    76  0141: 22                RET
+    77                  
+    78                  ; Convert nibble in A to ASCII and display
+    79  0142:           HEX_DIGIT:
+    80  0142: B4 0A 04          CJNE A, #0AH, NOT_HEX
+    81                          ; if >= 0Ah, convert to 'A'..'F'
+    82  0145: 24 37             ADD A, #37H          ; 10->'A', 11->'B', ...
+    83  0147: 80 02             SJMP DISP_CHAR
+    84  0149:           NOT_HEX:
+    85  0149: 24 30             ADD A, #'0'
+    86  014B:           DISP_CHAR:
+    87  014B: 12 81 02          LCALL WRITE_DATA
+    88  014E: 22                RET
+    89                  
+    90                          END

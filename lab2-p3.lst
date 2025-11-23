@@ -1,0 +1,30 @@
+     1  0000:                   ORG     0000H
+     2  0000: 02 01 00          LJMP    MAIN
+     3                  
+     4  0100:                   ORG     0100H
+     5                  
+     6        0030      NUM     EQU     30H    ; binary sayı (0–99)
+     7        0031      BCDNUM  EQU     31H    ; BCD sonuç
+     8                  
+     9  0100:           MAIN:
+    10  0100: 12 81 0C          LCALL   LCD_CLR
+    11                  
+    12                          ; Örnek: binary sayı yükle (mesela 45)
+    13  0103: 75 30 2D          MOV     NUM, #45
+    14                  
+    15                          ; --- 10’a bölme ---
+    16  0106: E5 30             MOV     A, NUM
+    17  0108: 75 F0 0A          MOV     B, #10
+    18  010B: 84                DIV     AB          ; A = bölüm (onlar), B = kalan (birler)
+    19                  
+    20                          ; --- BCD oluştur ---
+    21  010C: C4                SWAP    A           ; onlar basamağı yüksek nibble’a
+    22  010D: 54 F0             ANL     A, #0F0H    ; sadece yüksek nibble kalsın
+    23  010F: 45 F0             ORL     A, B        ; birler basamağını ekle
+    24  0111: F5 31             MOV     BCDNUM, A   ; BCD sayı hazır
+    25                  
+    26                          ; --- LCD’ye yaz ---
+    27  0113: E5 31             MOV     A, BCDNUM
+    28  0115: 12 81 04          LCALL   WRITE_HEX   ; BCD’yi ekranda göster
+    29                  
+    30  0118: 80 FE     HERE:   SJMP    HERE
